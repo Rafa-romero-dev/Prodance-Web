@@ -1,14 +1,581 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Phase 2: Complete schema will be built here
-// Including all tables, enums, relationships per DATABASE.md
+// ================================================
+// ENUMS
+// ================================================
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ClassType {
+  REGULAR
+  COMPLEMENTARY
+}
+
+enum ClassStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum EnrollmentStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  BLOCKED_RECOVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
+enum RecoveryStatus {
+  PENDING_PAYMENT
+  READY_TO_SCHEDULE
+  COMPLETED
+  CANCELLED
+}
+
+enum ChargeType {
+  ENROLLMENT
+  MONTHLY
+  RECOVERY
+  LEVEL_ASSESSMENT
+}
+
+enum ChargeStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum ReceiptStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AssessmentStatus {
+  PENDING_PAYMENT
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum EventStatus {
+  DRAFT
+  VISIBLE
+  CANCELLED
+  ARCHIVED
+}
+
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum StudentCycleStatus {
+  ACTIVE
+  COMPLETED
+}
+
+// ================================================
+// PEOPLE DOMAIN
+// ================================================
+
+model Administrator {
+  id            String   @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String   @unique
+  phone         String?
+  passwordHash  String
+  profilePhoto  String?
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  classesResponsible         Class[]
+  attendanceSessionsCreated  AttendanceSession[] @relation("CreatedByAdmin")
+  attendanceRecordsRegistered Attendance[] @relation("AttendanceRegisteredBy")
+  attendanceRecordsUpdated    Attendance[] @relation("AttendanceUpdatedBy")
+  recoveries                 Recovery[]
+  enrollmentsCreated         Enrollment[] @relation("CreatedByAdmin")
+  chargesCreated             Charge[] @relation("CreatedByAdmin")
+  receiptsReviewed           Receipt[] @relation("ReviewedByAdmin")
+  allocationsCreated         ReceiptAllocation[] @relation("AllocatedByAdmin")
+  promotionsPerformed        Promotion[] @relation("PerformedByAdmin")
+  assessmentsPerformed       LevelAssessment[] @relation("PerformedByAdmin")
+  eventsCreated              Event[] @relation("CreatedByAdmin")
+  auditLogs                  AuditLog[]
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model Student {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String
+  birthDate       DateTime?
+  guardianName    String?
+  profilePhoto    String?
+  enrollmentDate  DateTime @default(now())
+  status          StudentStatus @default(ACTIVE)
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  studentCycles   StudentCycle[]
+  enrollments     Enrollment[]
+  receipts        Receipt[]
+  charges         Charge[]
+  assessments     LevelAssessment[]
+  promotions      Promotion[]
+
+  @@index([email])
+  @@index([status])
+  @@index([phone])
+  @@index([lastName])
+}
+
+// ================================================
+// ACADEMIC DOMAIN
+// ================================================
+
+model Class {
+  id              String   @id @default(uuid())
+  name            String
+  type            ClassType
+  level           String?
+  capacity        Int
+  status          ClassStatus @default(ACTIVE)
+
+  administratorId String
+  administrator   Administrator @relation(fields: [administratorId], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  scheduleVersions  ScheduleVersion[]
+  enrollments       Enrollment[]
+  attendanceSessions AttendanceSession[]
+
+  @@index([type])
+  @@index([status])
+  @@index([administratorId])
+}
+
+model ScheduleVersion {
+  id              String   @id @default(uuid())
+  classId         String
+  class           Class    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  weekday         String
+  startTime       String
+  endTime         String
+  effectiveFrom   DateTime
+  effectiveUntil  DateTime?
+  isCurrent       Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  attendanceSessions AttendanceSession[]
+
+  @@index([classId])
+  @@index([isCurrent])
+  @@index([effectiveFrom])
+}
+
+model StudentCycle {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+  status          StudentCycleStatus @default(ACTIVE)
+
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  enrollments     Enrollment[]
+  assessments     LevelAssessment[]
+
+  @@index([studentId])
+  @@index([status])
+}
+
+model Enrollment {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  studentCycleId  String
+  studentCycle    StudentCycle @relation(fields: [studentCycleId], references: [id], onDelete: Restrict)
+
+  classId         String
+  class           Class    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  status          EnrollmentStatus @default(PENDING_PAYMENT)
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+
+  createdById     String
+  createdBy       Administrator @relation("CreatedByAdmin", fields: [createdById], references: [id], onDelete: Restrict)
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  attendances     Attendance[]
+  recoveries      Recovery[]
+  charges         Charge[] @relation("EnrollmentCharges")
+  promotionsFrom  Promotion[] @relation("FromEnrollment")
+  promotionsTo    Promotion[] @relation("ToEnrollment")
+
+  @@index([studentId])
+  @@index([classId])
+  @@index([status])
+  @@index([studentCycleId])
+  @@unique([studentId, classId, studentCycleId])
+}
+
+model AttendanceSession {
+  id              String   @id @default(uuid())
+  classId         String
+  class           Class    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  scheduleVersionId String
+  scheduleVersion ScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+
+  sessionDate     DateTime
+  status          SessionStatus @default(SCHEDULED)
+
+  createdById     String
+  createdBy       Administrator @relation("CreatedByAdmin", fields: [createdById], references: [id], onDelete: Restrict)
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  attendances     Attendance[]
+
+  @@index([classId])
+  @@index([sessionDate])
+  @@index([status])
+}
+
+model Attendance {
+  id              String   @id @default(uuid())
+  attendanceSessionId String
+  attendanceSession AttendanceSession @relation(fields: [attendanceSessionId], references: [id], onDelete: Restrict)
+
+  enrollmentId    String
+  enrollment      Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+
+  status          AttendanceStatus
+  isLate          Boolean @default(false)
+  minutesLate     Int?
+  observation     String?
+
+  registeredById  String
+  registeredBy    Administrator @relation("AttendanceRegisteredBy", fields: [registeredById], references: [id], onDelete: Restrict)
+  registeredAt    DateTime @default(now())
+
+  updatedById     String?
+  updatedBy       Administrator? @relation("AttendanceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([attendanceSessionId, enrollmentId])
+  @@index([attendanceSessionId])
+  @@index([enrollmentId])
+}
+
+model Recovery {
+  id              String   @id @default(uuid())
+  enrollmentId    String
+  enrollment      Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+
+  status          RecoveryStatus @default(PENDING_PAYMENT)
+  generatedAt     DateTime @default(now())
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+
+  teacherId       String
+  teacher         Administrator @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+
+  chargeId        String @unique
+  charge          Charge  @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+
+  completionNotes String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([enrollmentId])
+  @@index([status])
+  @@index([teacherId])
+}
+
+model Promotion {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  fromEnrollmentId String
+  fromEnrollment  Enrollment @relation("FromEnrollment", fields: [fromEnrollmentId], references: [id], onDelete: Restrict)
+
+  toEnrollmentId  String
+  toEnrollment    Enrollment @relation("ToEnrollment", fields: [toEnrollmentId], references: [id], onDelete: Restrict)
+
+  performedById   String
+  performedBy     Administrator @relation("PerformedByAdmin", fields: [performedById], references: [id], onDelete: Restrict)
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+model LevelAssessment {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  studentCycleId  String
+  studentCycle    StudentCycle @relation(fields: [studentCycleId], references: [id], onDelete: Restrict)
+
+  recommendedClassId String?
+  status          AssessmentStatus @default(PENDING_PAYMENT)
+
+  teacherId       String
+  teacher         Administrator @relation("PerformedByAdmin", fields: [teacherId], references: [id], onDelete: Restrict)
+
+  chargeId        String @unique
+  charge          Charge  @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+
+  performedAt     DateTime?
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+}
+
+// ================================================
+// FINANCIAL DOMAIN
+// ================================================
+
+model Charge {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  enrollmentId    String?
+  enrollment      Enrollment? @relation("EnrollmentCharges", fields: [enrollmentId], references: [id], onDelete: SetNull)
+
+  recoveryId      String?
+  recovery        Recovery?
+
+  assessmentId    String?
+  assessment      LevelAssessment?
+
+  type            ChargeType
+  status          ChargeStatus @default(PENDING)
+  description     String
+  amount          Int
+  remainingAmount Int
+  dueDate         DateTime?
+  paidAt          DateTime?
+  cancelledAt     DateTime?
+
+  createdById     String
+  createdBy       Administrator @relation("CreatedByAdmin", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  allocations     ReceiptAllocation[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([type])
+  @@index([dueDate])
+  @@index([enrollmentId])
+}
+
+model Receipt {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  billingMonth    String
+  amount          Int
+  currency        String   @default("USD")
+  status          ReceiptStatus @default(PENDING)
+  bank            String?
+  referenceNumber String?
+  imageUrl        String
+
+  notes           String?
+
+  uploadedAt      DateTime @default(now())
+  reviewedAt      DateTime?
+  reviewedById    String?
+  reviewedBy      Administrator? @relation("ReviewedByAdmin", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  allocations     ReceiptAllocation[]
+
+  @@index([studentId])
+  @@index([billingMonth])
+  @@index([status])
+  @@index([uploadedAt])
+}
+
+model ReceiptAllocation {
+  id              String   @id @default(uuid())
+  receiptId       String
+  receipt         Receipt  @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+
+  chargeId        String
+  charge          Charge   @relation(fields: [chargeId], references: [id], onDelete: Restrict)
+
+  allocatedAmount Int
+
+  allocatedById   String
+  allocatedBy     Administrator @relation("AllocatedByAdmin", fields: [allocatedById], references: [id], onDelete: Restrict)
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([receiptId, chargeId])
+}
+
+// ================================================
+// PUBLIC DOMAIN
+// ================================================
+
+model Event {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  location        String?
+  bannerImage     String?
+
+  visibility      EventVisibility @default(PUBLIC)
+  status          EventStatus @default(DRAFT)
+
+  startsAt        DateTime
+  endsAt          DateTime
+
+  createdById     String
+  createdBy       Administrator @relation("CreatedByAdmin", fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([visibility])
+  @@index([startsAt])
+}
+
+// ================================================
+// CONFIGURATION
+// ================================================
+
+model AcademySettings {
+  id              String   @id @default(uuid())
+
+  academyName     String
+  academyLogo     String?
+  academyEmail    String
+  academyPhone    String?
+  academyAddress  String?
+  timezone        String   @default("UTC")
+  currency        String   @default("USD")
+
+  monthlyBasePrice        Int
+  additionalClassPrice    Int
+  enrollmentFee           Int
+  recoveryFee             Int
+  assessmentFee           Int
+  maximumClassCapacity    Int   @default(20)
+
+  facebookUrl     String?
+  instagramUrl    String?
+  youtubeUrl      String?
+  tiktokUrl       String?
+  websiteUrl      String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ================================================
+// AUDIT
+// ================================================
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  administratorId String
+  administrator   Administrator @relation(fields: [administratorId], references: [id], onDelete: Restrict)
+
+  entityType      String
+  entityId        String
+  action          String
+
+  previousState   String?
+  newState        String?
+  metadata        String?
+
+  ipAddress       String?
+  userAgent       String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+  @@index([administratorId])
+}
