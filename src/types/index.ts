@@ -220,12 +220,12 @@ export interface StudentDTO {
   lastName: string
   email: string
   phone: string
-  birthDate?: Date
-  guardianName?: string
-  profilePhoto?: string
+  birthDate: Date | null
+  guardianName: string | null
+  profilePhoto: string | null
   enrollmentDate: Date
   status: 'ACTIVE' | 'INACTIVE'
-  notes?: string
+  notes: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -234,7 +234,7 @@ export interface ClassDTO {
   id: string
   name: string
   type: 'REGULAR' | 'COMPLEMENTARY'
-  level?: string
+  level: string | null
   capacity: number
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
   administratorId: string
