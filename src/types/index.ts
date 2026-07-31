@@ -249,10 +249,11 @@ export interface EnrollmentDTO {
   studentCycleId: string
   status: 'PENDING_PAYMENT' | 'ACTIVE' | 'BLOCKED_RECOVERY' | 'COMPLETED' | 'CANCELLED'
   startDate: Date
-  endDate?: Date
-  notes?: string
+  endDate: Date | null
+  notes: string | null
   createdAt: Date
   updatedAt: Date
+  createdById: string
 }
 
 export interface AttendanceDTO {
