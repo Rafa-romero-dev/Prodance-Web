@@ -243,3 +243,19 @@ export class ConflictError extends BusinessRuleError {
     super('CONFLICT', message, context)
   }
 }
+
+// Attendance Domain Errors
+export class AttendanceError extends BusinessRuleError {
+  constructor(code: string, message: string, context?: Record<string, unknown>) {
+    super(code, message, context)
+    this.name = 'AttendanceError'
+  }
+}
+
+// Recovery Domain Errors
+export class RecoveryError extends BusinessRuleError {
+  constructor(code: string, message: string, context?: Record<string, unknown>) {
+    super(code, message, context)
+    this.name = 'RecoveryError'
+  }
+}
