@@ -11,7 +11,7 @@ export default function DashboardsLanding() {
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Student Payment Dashboard */}
           <Link href="/dashboards/student">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer h-full">
@@ -68,12 +68,50 @@ export default function DashboardsLanding() {
               </div>
             </div>
           </Link>
+
+          {/* Teacher Dashboard */}
+          <Link href="/dashboards/teacher">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer h-full">
+              <div className="h-32 bg-gradient-to-r from-teal-500 to-teal-600"></div>
+              <div className="px-6 py-8">
+                <div className="text-2xl font-bold text-gray-900 mb-2">Teacher</div>
+                <p className="text-gray-600 mb-6">
+                  Manage student recoveries and mark completion.
+                </p>
+                <div className="flex items-center text-teal-600 font-medium">
+                  <span>Go to Dashboard</span>
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Finance Officer Dashboard */}
+          <Link href="/dashboards/finance-officer">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer h-full">
+              <div className="h-32 bg-gradient-to-r from-amber-500 to-amber-600"></div>
+              <div className="px-6 py-8">
+                <div className="text-2xl font-bold text-gray-900 mb-2">Finance Officer</div>
+                <p className="text-gray-600 mb-6">
+                  Approve receipts and allocate payments to charges.
+                </p>
+                <div className="flex items-center text-amber-600 font-medium">
+                  <span>Go to Dashboard</span>
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Features Section */}
         <div className="mt-16 bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Dashboard Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             <div>
               <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mb-4">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,6 +143,28 @@ export default function DashboardsLanding() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">Admin Reports</h3>
               <p className="text-gray-600">
                 Comprehensive billing overview and student outstanding balances
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-teal-500 text-white mb-4">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Recovery Management</h3>
+              <p className="text-gray-600">
+                Manage student recoveries with status tracking
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-amber-500 text-white mb-4">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Receipt Approval</h3>
+              <p className="text-gray-600">
+                Batch approve and reject payment receipts
               </p>
             </div>
           </div>

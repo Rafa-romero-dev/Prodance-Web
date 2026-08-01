@@ -13,12 +13,12 @@
     "e2e": "playwright test"
   },
   "dependencies": {
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^7.9.1",
     "@tanstack/react-table": "^8.21.3",
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
     "next-auth": "^4.24.15",
-    "prisma": "^5.20.0",
+    "prisma": "^7.9.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.83.0",
