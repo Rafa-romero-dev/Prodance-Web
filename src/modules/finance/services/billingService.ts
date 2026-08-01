@@ -1,12 +1,12 @@
 import type { ServiceResult } from '@/types'
 import { BusinessRuleError } from '@/lib/errors'
 import { getAuditService } from '@/modules/audit/services/auditService'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { calculateMonthlyPrice } from '../utils/chargeCalculator'
 import type { BillingResult } from '../types'
 
 export class BillingService {
-  private db = new PrismaClient()
+  private db = prisma
   private auditService = getAuditService()
   private billingSystemAdminId = 'SYSTEM_BILLING_ADMIN' // System-generated charges
 

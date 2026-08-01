@@ -1,7 +1,7 @@
 import type { ServiceResult } from '@/types'
 import { BusinessRuleError } from '@/lib/errors'
 import { getAuditService } from '@/modules/audit/services/auditService'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import {
   validateAllocationAmount,
   calculateBalancesAfterAllocation,
@@ -9,7 +9,7 @@ import {
 import type { ReceiptAllocationDTO } from '../types'
 
 export class AllocationService {
-  private db = new PrismaClient()
+  private db = prisma
   private auditService = getAuditService()
 
   /**
