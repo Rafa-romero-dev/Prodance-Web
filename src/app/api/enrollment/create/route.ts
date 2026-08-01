@@ -47,12 +47,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get or create current student cycle
-    const currentYear = new Date().getFullYear()
+    // Get or create the student's active cycle
     let studentCycle = await prisma.studentCycle.findFirst({
       where: {
         studentId,
-        year: currentYear,
+        status: 'ACTIVE',
       },
     })
 
@@ -60,8 +59,8 @@ export async function POST(request: NextRequest) {
       studentCycle = await prisma.studentCycle.create({
         data: {
           studentId,
-          year: currentYear,
           status: 'ACTIVE',
+          startDate: new Date(),
         },
       })
     }
