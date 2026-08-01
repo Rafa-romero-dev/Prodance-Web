@@ -13,7 +13,7 @@ export async function detectAndHandleConsecutiveAbsences(
 ): Promise<{
   detected: boolean
   recoveryId?: string
-  error?: string
+  error?: string | null
 }> {
   try {
     const attendanceService = new AttendanceService()
@@ -36,10 +36,10 @@ export async function detectAndHandleConsecutiveAbsences(
       administratorId
     )
 
-    if (!result.success) {
+    if (!result.success || !result.data) {
       return {
         detected: true,
-        error: result.error,
+        error: result.error?.message || 'Unknown error',
       }
     }
 

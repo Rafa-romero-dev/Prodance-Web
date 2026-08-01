@@ -37,15 +37,18 @@ export class AttendanceService {
       const activeEnrollments = await this.repository.getActiveEnrollmentsForClass(classId)
 
       if (activeEnrollments.length === 0) {
-        await this.auditService.logAction({
-          action: 'ATTENDANCE_SESSION_CREATED',
+        await this.auditService.log(
           administratorId,
-          details: {
-            sessionId: session.id,
-            classId,
-            enrollmentCount: 0,
-          },
-        })
+          'AttendanceSession',
+          session.id,
+          'AttendanceSessionCreated',
+          {
+            metadata: {
+              classId,
+              enrollmentCount: 0,
+            },
+          }
+        )
 
         return {
           success: true,
@@ -61,15 +64,18 @@ export class AttendanceService {
       )
 
       // Log the session creation
-      await this.auditService.logAction({
-        action: 'ATTENDANCE_SESSION_CREATED',
+      await this.auditService.log(
         administratorId,
-        details: {
-          sessionId: session.id,
-          classId,
-          enrollmentCount: attendances.length,
-        },
-      })
+        'AttendanceSession',
+        session.id,
+        'AttendanceSessionCreated',
+        {
+          metadata: {
+            classId,
+            enrollmentCount: attendances.length,
+          },
+        }
+      )
 
       return {
         success: true,
@@ -79,14 +85,17 @@ export class AttendanceService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
+      const businessError = new BusinessRuleError(
+        'ATTENDANCE_ERROR',
+        error instanceof Error ? error.message : 'Failed to open attendance session'
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to open attendance session',
+        error: businessError,
       }
     }
   }
@@ -128,16 +137,19 @@ export class AttendanceService {
       )
 
       // Log the registration
-      await this.auditService.logAction({
-        action: 'ATTENDANCE_REGISTERED',
+      await this.auditService.log(
         administratorId,
-        details: {
-          attendanceId: attendance.id,
-          enrollmentId,
-          status,
-          isLate,
-        },
-      })
+        'Attendance',
+        attendance.id,
+        'AttendanceRegistered',
+        {
+          metadata: {
+            enrollmentId,
+            status,
+            isLate,
+          },
+        }
+      )
 
       return {
         success: true,
@@ -147,14 +159,17 @@ export class AttendanceService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
+      const businessError = new BusinessRuleError(
+        'ATTENDANCE_ERROR',
+        error instanceof Error ? error.message : 'Failed to register attendance'
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to register attendance',
+        error: businessError,
       }
     }
   }
@@ -193,24 +208,27 @@ export class AttendanceService {
       )
 
       // Log the edit with before/after values
-      await this.auditService.logAction({
-        action: 'ATTENDANCE_EDITED',
-        administratorId: updatedById,
-        details: {
-          attendanceId,
-          before: {
+      await this.auditService.log(
+        updatedById,
+        'Attendance',
+        attendanceId,
+        'AttendanceEdited',
+        {
+          previousState: {
             status: original.status,
             isLate: original.isLate,
             minutesLate: original.minutesLate,
           },
-          after: {
+          newState: {
             status: updated.status,
             isLate: updated.isLate,
             minutesLate: updated.minutesLate,
           },
-          reason,
-        },
-      })
+          metadata: {
+            reason,
+          },
+        }
+      )
 
       return {
         success: true,
@@ -220,14 +238,17 @@ export class AttendanceService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
+      const businessError = new BusinessRuleError(
+        'ATTENDANCE_ERROR',
+        error instanceof Error ? error.message : 'Failed to edit attendance'
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to edit attendance',
+        error: businessError,
       }
     }
   }
@@ -305,9 +326,13 @@ export class AttendanceService {
         data: [],
       }
     } catch (error) {
+      const businessError = new BusinessRuleError(
+        'ATTENDANCE_ERROR',
+        error instanceof Error ? error.message : 'Failed to fetch attendance history'
+      )
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch attendance history',
+        error: businessError,
       }
     }
   }

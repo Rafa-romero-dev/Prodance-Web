@@ -91,16 +91,19 @@ export class RecoveryService {
         })
 
         // Log the action
-        await this.auditService.logAction({
-          action: 'RECOVERY_GENERATED',
+        await this.auditService.log(
           administratorId,
-          details: {
-            recoveryId: updatedRecovery.id,
-            enrollmentId,
-            chargeId,
-            studentId: enrollment.studentId,
-          },
-        })
+          'Recovery',
+          updatedRecovery.id,
+          'RecoveryGenerated',
+          {
+            metadata: {
+              enrollmentId,
+              chargeId,
+              studentId: enrollment.studentId,
+            },
+          }
+        )
 
         return {
           success: true,
@@ -132,17 +135,17 @@ export class RecoveryService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
       const message = error instanceof Error ? error.message : 'Failed to generate recovery'
       this.log('error', message, error)
 
+      const businessError = new BusinessRuleError('RECOVERY_ERROR', message)
       return {
         success: false,
-        error: message,
+        error: businessError,
       }
     }
   }
@@ -200,16 +203,19 @@ export class RecoveryService {
         })
 
         // Log the action
-        await this.auditService.logAction({
-          action: 'RECOVERY_COMPLETED',
+        await this.auditService.log(
           administratorId,
-          details: {
-            recoveryId,
-            enrollmentId: recovery.enrollmentId,
-            completedAt,
-            completionNotes,
-          },
-        })
+          'Recovery',
+          recoveryId,
+          'RecoveryCompleted',
+          {
+            metadata: {
+              enrollmentId: recovery.enrollmentId,
+              completedAt,
+              completionNotes,
+            },
+          }
+        )
 
         return {
           success: true,
@@ -232,17 +238,17 @@ export class RecoveryService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
       const message = error instanceof Error ? error.message : 'Failed to complete recovery'
       this.log('error', message, error)
 
+      const businessError = new BusinessRuleError('RECOVERY_ERROR', message)
       return {
         success: false,
-        error: message,
+        error: businessError,
       }
     }
   }
@@ -295,15 +301,18 @@ export class RecoveryService {
         })
 
         // Log the action
-        await this.auditService.logAction({
-          action: 'RECOVERY_CANCELLED',
+        await this.auditService.log(
           administratorId,
-          details: {
-            recoveryId,
-            enrollmentId: recovery.enrollmentId,
-            reason,
-          },
-        })
+          'Recovery',
+          recoveryId,
+          'RecoveryCancelled',
+          {
+            metadata: {
+              enrollmentId: recovery.enrollmentId,
+              reason,
+            },
+          }
+        )
 
         return {
           success: true,
@@ -326,17 +335,17 @@ export class RecoveryService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
       const message = error instanceof Error ? error.message : 'Failed to cancel recovery'
       this.log('error', message, error)
 
+      const businessError = new BusinessRuleError('RECOVERY_ERROR', message)
       return {
         success: false,
-        error: message,
+        error: businessError,
       }
     }
   }
@@ -367,14 +376,17 @@ export class RecoveryService {
       const updated = await this.repository.markReadyToSchedule(recoveryId, scheduledAt)
 
       // Log the action
-      await this.auditService.logAction({
-        action: 'RECOVERY_MARKED_READY',
+      await this.auditService.log(
         administratorId,
-        details: {
-          recoveryId,
-          scheduledAt,
-        },
-      })
+        'Recovery',
+        recoveryId,
+        'RecoveryStarted',
+        {
+          metadata: {
+            scheduledAt,
+          },
+        }
+      )
 
       return {
         success: true,
@@ -384,15 +396,15 @@ export class RecoveryService {
       if (error instanceof BusinessRuleError) {
         return {
           success: false,
-          error: error.message,
-          code: error.code,
+          error,
         }
       }
 
       const message = error instanceof Error ? error.message : 'Failed to mark recovery as ready'
+      const businessError = new BusinessRuleError('RECOVERY_ERROR', message)
       return {
         success: false,
-        error: message,
+        error: businessError,
       }
     }
   }
@@ -412,9 +424,10 @@ export class RecoveryService {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch recovery history'
+      const businessError = new BusinessRuleError('RECOVERY_ERROR', message)
       return {
         success: false,
-        error: message,
+        error: businessError,
       }
     }
   }
