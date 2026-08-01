@@ -191,9 +191,34 @@ Implemented:
 
 **No Schema Changes Needed**: All entities already defined in DOMAIN.md
 
-## Testing Readiness
+## Testing Strategy
 
-### What Can Be Tested
+### IMMEDIATE (Phase 3.3)
+**Status**: Code complete. Final E2E testing postponed.
+
+**What to verify now** (lightweight):
+1. Code compiles without errors: `npm run build`
+2. No TypeScript errors in modules
+3. Imports work correctly (public APIs)
+4. Error types are properly exported
+
+**What to skip for now**:
+- Full workflow testing
+- Database integration tests
+- Manual attendance/recovery flows
+- Complete audit trail verification
+
+### COMPREHENSIVE E2E TESTING
+**Scheduled for**: After Phase 7 (Dashboard completion)
+
+**Rationale**:
+- Dashboard will display attendance and recovery data
+- Can test full workflows with visual confirmation
+- Better context for testing enrollment blocking
+- Can verify audit logs are readable in UI
+- Can test recovery dashboard functionality
+
+**What will be tested then**:
 
 1. **Attendance Registration**
    - Open sessions with multiple enrollments
@@ -230,6 +255,12 @@ Implemented:
    - Cancel recovery with reason
    - Verify enrollment unblocked
    - Test audit trail
+
+7. **Dashboard Verification**
+   - Pending recoveries display
+   - Attendance history visible
+   - Recovery status tracking
+   - Enrollment status reflects blocking
 
 ## Known Limitations & Future Enhancements
 
@@ -303,11 +334,39 @@ src/modules/
 
 ## Next Steps
 
-1. **Code Review**: Review implementation against DOMAIN.md rules
-2. **Manual Testing**: Test all workflows above
-3. **Integration Testing**: Verify Attendance → Recovery flow
-4. **Phase 4**: Level Assessment module
-5. **Phase 5**: Finance module (payment integration)
+1. **Immediate** (now):
+   - ✅ Code complete
+   - Verify: `npm run build` succeeds
+   - Ready for next phase
+
+2. **Phase 4**: Level Assessment module
+   - Similar patterns to Attendance/Recovery
+   - Auto-generate on re-entry
+   - Create assessment charges
+   - Teacher evaluation workflow
+
+3. **Phase 5**: Finance module
+   - Payment workflows
+   - Charge status updates
+   - Recovery charges can be marked PAID
+   - Integration with Recovery status changes
+
+4. **Phase 6**: Dashboard
+   - Display attendance history
+   - Show pending recoveries
+   - Display enrollment status (active/blocked)
+   - Show recovery completion status
+
+5. **Phase 7**: Reports & Analytics
+   - Attendance statistics
+   - Recovery completion rates
+   - Student retention metrics
+
+6. **Comprehensive E2E Testing**
+   - After Phase 7 complete
+   - Full workflow testing with dashboard visibility
+   - Database integrity verification
+   - Audit trail validation
 
 ## Summary
 
