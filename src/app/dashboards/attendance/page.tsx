@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface AttendanceSummary {
   totalSessions: number
@@ -19,12 +20,18 @@ interface AttendanceSummary {
 }
 
 export default function AttendanceTrackingDashboard() {
-  const [studentId] = useState('demo-student-1') // In real app, get from auth
+  const { data: session, status } = useSession()
+  const studentId = session?.user.role === 'STUDENT' ? session.user.id : null
   const [summary, setSummary] = useState<AttendanceSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!studentId) {
+      setLoading(false)
+      return
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true)
@@ -46,10 +53,20 @@ export default function AttendanceTrackingDashboard() {
     fetchData()
   }, [studentId])
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!studentId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-gray-600">
+          This dashboard is only available to student accounts.
+        </div>
       </div>
     )
   }

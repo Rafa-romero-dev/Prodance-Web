@@ -4,14 +4,12 @@ import { useState, useEffect } from 'react'
 
 interface EnrollmentFormProps {
   studentId?: string
-  administratorId: string
   onSuccess?: (enrollment: any) => void
   onError?: (error: string) => void
 }
 
 export function EnrollmentForm({
   studentId: initialStudentId,
-  administratorId,
   onSuccess,
   onError,
 }: EnrollmentFormProps) {
@@ -81,7 +79,6 @@ export function EnrollmentForm({
         body: JSON.stringify({
           studentId: selectedStudent,
           classId: selectedClass,
-          administratorId,
         }),
       })
 

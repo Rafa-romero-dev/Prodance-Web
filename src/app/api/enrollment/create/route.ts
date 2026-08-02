@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdministrator, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const administrator = await requireAdministrator()
+
     const body = await request.json()
-    const { studentId, classId, administratorId } = body
+    const { studentId, classId } = body
 
     // Validate required fields
-    if (!studentId || !classId || !administratorId) {
+    if (!studentId || !classId) {
       return NextResponse.json(
-        { error: 'Missing required fields: studentId, classId, administratorId' },
+        { error: 'Missing required fields: studentId, classId' },
         { status: 400 }
       )
     }
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
         classId,
         status: 'ACTIVE',
         startDate: new Date(),
-        createdById: administratorId,
+        createdById: administrator.id,
       },
       include: {
         class: true,
@@ -100,7 +103,7 @@ export async function POST(request: NextRequest) {
         description: `Enrollment charge for ${enrollment.class.name}`,
         amount: chargeAmount,
         remainingAmount: chargeAmount,
-        createdById: administratorId,
+        createdById: administrator.id,
       },
     })
 
@@ -120,6 +123,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error creating enrollment:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

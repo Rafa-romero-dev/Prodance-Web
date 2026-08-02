@@ -140,6 +140,7 @@ model Student {
   lastName        String
   email           String   @unique
   phone           String
+  passwordHash    String?
   birthDate       DateTime?
   guardianName    String?
   profilePhoto    String?

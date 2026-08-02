@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdministrator, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdministrator()
+
     const body = await request.json()
-    const { recoveryId, administratorId } = body
+    const { recoveryId } = body
 
     // Validate required fields
-    if (!recoveryId || !administratorId) {
+    if (!recoveryId) {
       return NextResponse.json(
-        { error: 'Missing required fields: recoveryId, administratorId' },
+        { error: 'Missing required field: recoveryId' },
         { status: 400 }
       )
     }
@@ -76,6 +79,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error completing recovery:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

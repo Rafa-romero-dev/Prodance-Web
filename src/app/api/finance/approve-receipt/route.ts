@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdministrator, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { receiptId, administratorId } = body
+    const administrator = await requireAdministrator()
 
-    if (!receiptId || !administratorId) {
+    const body = await request.json()
+    const { receiptId } = body
+
+    if (!receiptId) {
       return NextResponse.json(
-        { error: 'Missing required fields: receiptId, administratorId' },
+        { error: 'Missing required field: receiptId' },
         { status: 400 }
       )
     }
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
       data: {
         status: 'APPROVED',
         reviewedAt: new Date(),
-        reviewedById: administratorId,
+        reviewedById: administrator.id,
       },
     })
 
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error approving receipt:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

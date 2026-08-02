@@ -2,7 +2,7 @@ import { config } from 'dotenv'
 import { resolve } from 'path'
 import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import * as crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 // Load environment variables from .env.local
 config({ path: resolve('.env.local') })
@@ -13,19 +13,19 @@ const adapter = new PrismaBetterSqlite3({
 const prisma = new PrismaClient({ adapter })
 
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
+  return bcrypt.hashSync(password, 10)
 }
 
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // Clear existing data
+  // Clear existing data (children before the parents they reference)
   await prisma.receiptAllocation.deleteMany()
   await prisma.receipt.deleteMany()
-  await prisma.charge.deleteMany()
   await prisma.recovery.deleteMany()
   await prisma.attendance.deleteMany()
   await prisma.attendanceSession.deleteMany()
+  await prisma.charge.deleteMany()
   await prisma.enrollment.deleteMany()
   await prisma.scheduleVersion.deleteMany()
   await prisma.class.deleteMany()
@@ -66,6 +66,7 @@ async function main() {
         lastName: 'Johnson',
         email: 'alice@example.com',
         phone: '555-1001',
+        passwordHash: hashPassword('alice123'),
         status: 'ACTIVE',
       },
     }),
@@ -75,6 +76,7 @@ async function main() {
         lastName: 'Smith',
         email: 'bob@example.com',
         phone: '555-1002',
+        passwordHash: hashPassword('bob123'),
         status: 'ACTIVE',
       },
     }),
@@ -84,6 +86,7 @@ async function main() {
         lastName: 'Davis',
         email: 'carol@example.com',
         phone: '555-1003',
+        passwordHash: hashPassword('carol123'),
         status: 'ACTIVE',
       },
     }),
@@ -93,6 +96,7 @@ async function main() {
         lastName: 'Wilson',
         email: 'david@example.com',
         phone: '555-1004',
+        passwordHash: hashPassword('david123'),
         status: 'ACTIVE',
       },
     }),
@@ -422,6 +426,13 @@ async function main() {
   console.log('- Receipts: 3 (2 APPROVED, 1 PENDING)')
   console.log('- Attendance Records: 3')
   console.log('- Recoveries: 1 (READY_TO_SCHEDULE)')
+  console.log('\nLogin credentials (dev only):')
+  console.log('- admin@prodance.com / admin123')
+  console.log('- teacher@prodance.com / teacher123')
+  console.log('- alice@example.com / alice123')
+  console.log('- bob@example.com / bob123')
+  console.log('- carol@example.com / carol123')
+  console.log('- david@example.com / david123')
 }
 
 main()

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdministrator, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdministrator()
+
     const receipts = await prisma.receipt.findMany({
       where: { status: 'PENDING' },
       include: {
@@ -28,6 +31,7 @@ export async function GET(request: NextRequest) {
       data: formatted,
     })
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error fetching pending receipts:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

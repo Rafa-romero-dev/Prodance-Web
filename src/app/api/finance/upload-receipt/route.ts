@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireStudentAccess, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    await requireStudentAccess(studentId)
 
     if (amount <= 0) {
       return NextResponse.json(
@@ -65,6 +68,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error uploading receipt:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

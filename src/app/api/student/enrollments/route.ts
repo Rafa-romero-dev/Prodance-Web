@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireStudentAccess, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    await requireStudentAccess(studentId)
 
     const enrollments = await prisma.enrollment.findMany({
       where: { studentId },
@@ -51,6 +54,7 @@ export async function GET(request: NextRequest) {
       data: formatted,
     })
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error fetching enrollments:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

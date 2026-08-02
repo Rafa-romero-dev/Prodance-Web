@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 interface AllocationFormProps {
   receiptId?: string
   chargeId?: string
-  administratorId: string
   onSuccess?: (allocation: any) => void
   onError?: (error: string) => void
 }
@@ -13,7 +12,6 @@ interface AllocationFormProps {
 export function AllocationForm({
   receiptId: initialReceiptId,
   chargeId: initialChargeId,
-  administratorId,
   onSuccess,
   onError,
 }: AllocationFormProps) {
@@ -106,7 +104,6 @@ export function AllocationForm({
           receiptId: selectedReceipt,
           chargeId: selectedCharge,
           allocationAmount: amount,
-          administratorId,
         }),
       })
 

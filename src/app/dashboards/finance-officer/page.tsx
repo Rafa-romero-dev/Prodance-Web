@@ -62,10 +62,7 @@ export default function FinanceOfficerDashboard() {
       const res = await fetch('/api/finance/approve-receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          receiptId,
-          administratorId: 'finance-admin', // In real app, get from auth
-        }),
+        body: JSON.stringify({ receiptId }),
       })
 
       if (!res.ok) {
@@ -91,11 +88,7 @@ export default function FinanceOfficerDashboard() {
       const res = await fetch('/api/finance/reject-receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          receiptId,
-          reason,
-          administratorId: 'finance-admin', // In real app, get from auth
-        }),
+        body: JSON.stringify({ receiptId, reason }),
       })
 
       if (!res.ok) {
@@ -268,7 +261,6 @@ export default function FinanceOfficerDashboard() {
             {/* Form */}
             <div>
               <AllocationForm
-                administratorId="finance-officer"
                 onSuccess={() => {
                   fetchData()
                   alert('Payment allocated successfully!')

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdministrator, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const administrator = await requireAdministrator()
+
     const body = await request.json()
-    const { receiptId, chargeId, allocationAmount, administratorId } = body
+    const { receiptId, chargeId, allocationAmount } = body
 
     // Validate required fields
-    if (!receiptId || !chargeId || !allocationAmount || !administratorId) {
+    if (!receiptId || !chargeId || !allocationAmount) {
       return NextResponse.json(
-        { error: 'Missing required fields: receiptId, chargeId, allocationAmount, administratorId' },
+        { error: 'Missing required fields: receiptId, chargeId, allocationAmount' },
         { status: 400 }
       )
     }
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
           receiptId,
           chargeId,
           allocatedAmount: allocationAmountCents,
-          allocatedById: administratorId,
+          allocatedById: administrator.id,
           notes: null,
         },
       })
@@ -135,6 +138,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error allocating payment:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

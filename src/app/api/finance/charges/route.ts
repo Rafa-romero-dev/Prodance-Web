@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ChargeService } from '@/modules/finance'
+import { requireStudentAccess, isUnauthorizedError, unauthorizedResponse } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    await requireStudentAccess(studentId)
 
     const chargeService = new ChargeService()
     const result = await chargeService.getPendingChargesForStudent(studentId)
@@ -29,6 +32,7 @@ export async function GET(request: NextRequest) {
       data: result.data,
     })
   } catch (error) {
+    if (isUnauthorizedError(error)) return unauthorizedResponse()
     console.error('Error fetching charges:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
