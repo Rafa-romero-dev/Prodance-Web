@@ -77,11 +77,14 @@
 ## ⚠️ MISSING FOR PRODUCTION DEPLOY
 
 ### Authentication & Security
-- [ ] Implement actual authentication (currently using hardcoded 'admin', 'teacher', 'demo-student-1')
-- [ ] Role-based access control (RBAC) middleware
-- [ ] Session management
-- [ ] JWT token validation
-- [ ] Password hashing verification in routes
+- [x] Implement actual authentication — Auth.js Credentials provider (2026-08-02)
+- [x] Role-based access control — src/proxy.ts blocks unauthenticated/wrong-role access to dashboards and API routes; per-route ownership checks (requireAdministrator/requireStudentAccess) replace client-supplied IDs
+- [x] Session management — JWT session strategy via NextAuth
+- [x] JWT token validation — handled by NextAuth/next-auth/jwt
+- [x] Password hashing — bcrypt (was raw SHA-256 in the original seed script)
+- [ ] Student invitation flow (admin creates student → email invite → student sets password) — Decision 003 in PRODUCT_DECISIONS.md describes this; not built yet. Students currently need a passwordHash seeded/set directly
+- [ ] Password reset flow
+- [ ] Resend integration for invitation/reset emails
 
 ### Testing (Phase 8)
 - [ ] Unit tests with Vitest
@@ -131,20 +134,22 @@
 
 ## 📊 SUMMARY
 
-**Ready for Deploy:** NO - authentication, Postgres production config, and tests are still outstanding
+**Ready for Deploy:** NO - Postgres production config and tests are still outstanding
 
 **Estimated Work to Deploy-Ready:**
 - Add basic tests: 4-6 hours
 - UI/UX polish: 4-8 hours
-- Auth + deployment infra: 3-5 hours
-- **Total: ~11-19 hours of work remaining**
+- Student invitation/password-reset flow (Resend): 2-4 hours
+- Deployment infra (Postgres migration, env configs, CI/CD): 2-4 hours
+- **Total: ~8-16 hours of work remaining**
 
 **Recommended Next Steps:**
 1. ~~Fix Prisma 7 SQLite configuration~~ ✅ Done
 2. ~~Get seed script working with local database~~ ✅ Done
 3. ~~Test all API endpoints with populated data~~ ✅ Done (admin billing dashboard verified end-to-end in-browser)
 4. ~~Implement missing API routes for dashboards~~ ✅ Done
-5. Add authentication middleware
-6. Create unit tests for critical business logic
-7. Resolve Supabase Postgres connectivity / migration strategy for production
-8. Deploy to staging environment
+5. ~~Add authentication middleware~~ ✅ Done (2026-08-02) — Auth.js Credentials provider, session-based route protection in src/proxy.ts, verified end-to-end in-browser for both Administrator and Student roles
+6. Build student invitation flow (Resend) so admins can onboard real students without manually seeding passwords
+7. Create unit tests for critical business logic
+8. Resolve Supabase Postgres connectivity / migration strategy for production
+9. Deploy to staging environment
