@@ -87,10 +87,11 @@
 - [ ] Resend integration for invitation/reset emails
 
 ### Testing (Phase 8)
-- [ ] Unit tests with Vitest
-- [ ] API integration tests
-- [ ] E2E tests with Playwright
-- [ ] Component tests for forms/dashboards
+- [x] Unit tests with Vitest — pricing/allocation calculators, auth session helpers (85 tests)
+- [x] Integration tests against a real SQLite test DB — students, enrollments, attendance/recovery, billing/receipts/allocation
+- [x] E2E tests with Playwright — login (admin + student), route/role gating, sign-out
+- [ ] Component tests for forms/dashboards (React Testing Library) — not started
+- [ ] CI wiring (GitHub Actions or similar) to run lint/typecheck/vitest/playwright on PRs
 
 ### UI/UX Polish (Phase 9)
 - [ ] Dashboard charts and visualizations
@@ -134,22 +135,23 @@
 
 ## 📊 SUMMARY
 
-**Ready for Deploy:** NO - Postgres production config and tests are still outstanding
+**Ready for Deploy:** NO - Postgres production config, UI polish, and CI wiring are still outstanding
 
 **Estimated Work to Deploy-Ready:**
-- Add basic tests: 4-6 hours
 - UI/UX polish: 4-8 hours
-- Student invitation/password-reset flow (Resend): 2-4 hours
 - Deployment infra (Postgres migration, env configs, CI/CD): 2-4 hours
+- Student invitation/password-reset flow (Resend): 2-4 hours
 - **Total: ~8-16 hours of work remaining**
 
-**Recommended Next Steps:**
+**Recommended Next Steps** (student invitation flow intentionally deferred to last):
 1. ~~Fix Prisma 7 SQLite configuration~~ ✅ Done
 2. ~~Get seed script working with local database~~ ✅ Done
 3. ~~Test all API endpoints with populated data~~ ✅ Done (admin billing dashboard verified end-to-end in-browser)
 4. ~~Implement missing API routes for dashboards~~ ✅ Done
 5. ~~Add authentication middleware~~ ✅ Done (2026-08-02) — Auth.js Credentials provider, session-based route protection in src/proxy.ts, verified end-to-end in-browser for both Administrator and Student roles
-6. Build student invitation flow (Resend) so admins can onboard real students without manually seeding passwords
-7. Create unit tests for critical business logic
+6. ~~Create unit/integration/E2E tests for critical business logic~~ ✅ Done (2026-08-05) — 85 vitest tests + 8 Playwright E2E tests; found and fixed 4 real bugs in the service layer along the way (see git log)
+7. Wire CI to run lint/typecheck/vitest/playwright on every PR
 8. Resolve Supabase Postgres connectivity / migration strategy for production
-9. Deploy to staging environment
+9. UI/UX polish (Phase 9)
+10. Deploy to staging environment
+11. Build student invitation flow (Resend) — deferred last per explicit instruction
