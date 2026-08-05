@@ -60,28 +60,31 @@ export class RecoveryService {
       }
 
       return await this.repository.withTransaction(async (tx) => {
-        // Create the recovery record
+        // Recovery.chargeId is a required FK, so the charge must exist
+        // before the recovery row can reference it.
+        const chargeId = await generateRecoveryCharge(
+          enrollment.studentId,
+          enrollmentId,
+          undefined,
+          administratorId,
+          tx
+        )
+
+        // Create the recovery record, now that a real charge exists
         const recovery = await tx.recovery.create({
           data: {
             enrollmentId,
             teacherId,
-            chargeId: '', // Placeholder, will be updated
+            chargeId,
             status: 'PENDING_PAYMENT',
           },
         })
 
-        // Generate recovery charge
-        const chargeId = await generateRecoveryCharge(
-          enrollment.studentId,
-          enrollmentId,
-          recovery.id,
-          administratorId
-        )
-
-        // Update recovery with charge ID
-        const updatedRecovery = await tx.recovery.update({
-          where: { id: recovery.id },
-          data: { chargeId },
+        // Back-fill the charge's reverse reference to the recovery
+        const updatedRecovery = recovery
+        await tx.charge.update({
+          where: { id: chargeId },
+          data: { recoveryId: recovery.id },
         })
 
         // Block the enrollment

@@ -1,25 +1,33 @@
 import { prisma } from '@/lib/prisma'
 import { BusinessRuleError } from '@/lib/errors'
+import type { Prisma } from '@prisma/client'
 import type { RecoveryDTO } from '../types'
 
 /**
  * Settings for recovery charges - should be configurable
  * For now, hardcoded. In future, fetch from academy settings
  */
-const RECOVERY_FEE = 1500 // $15.00 in cents
+export const RECOVERY_FEE = 1500 // $15.00 in cents
 
 /**
- * Generate a recovery charge in the database
- * Business Rule: Recovery MUST generate a charge
+ * Generate a recovery charge in the database.
+ * Business Rule: Recovery MUST generate a charge.
+ *
+ * recoveryId is optional because Recovery.chargeId is a required FK to
+ * Charge — the charge must exist before the recovery row can reference it.
+ * Pass a transaction client when calling this as part of a larger
+ * transaction (e.g. recovery generation), so the charge insert rolls back
+ * with everything else on failure.
  */
 export async function generateRecoveryCharge(
   studentId: string,
   enrollmentId: string,
-  recoveryId: string,
-  administratorId: string
+  recoveryId: string | undefined,
+  administratorId: string,
+  client: Prisma.TransactionClient | typeof prisma = prisma
 ): Promise<string> {
   try {
-    const charge = await prisma.charge.create({
+    const charge = await client.charge.create({
       data: {
         studentId,
         enrollmentId,

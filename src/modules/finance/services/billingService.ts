@@ -8,14 +8,21 @@ import type { BillingResult } from '../types'
 export class BillingService {
   private db = prisma
   private auditService = getAuditService()
-  private billingSystemAdminId = 'SYSTEM_BILLING_ADMIN' // System-generated charges
 
   /**
    * Generate monthly charges for all active students
    * Business Rule: Monthly charges are generated automatically based on active enrollments
    * One charge per student per month, amount determined by number of active classes
+   *
+   * administratorId identifies whoever/whatever triggers the run (an admin
+   * clicking "run billing", or a scheduled job's service account) — Charge
+   * and AuditLog both have a required FK to a real Administrator row, so
+   * this can't be a placeholder string.
    */
-  async generateMonthlyCharges(month: string): Promise<ServiceResult<BillingResult>> {
+  async generateMonthlyCharges(
+    month: string,
+    administratorId: string
+  ): Promise<ServiceResult<BillingResult>> {
     try {
       const result: BillingResult = {
         chargesGenerated: 0,
@@ -97,13 +104,13 @@ export class BillingService {
               remainingAmount: chargeAmount,
               status: 'PENDING',
               dueDate: new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1),
-              createdById: this.billingSystemAdminId,
+              createdById: administratorId,
             },
           })
 
           // Log the auto-generated charge
           await this.auditService.log(
-            this.billingSystemAdminId,
+            administratorId,
             'Charge',
             charge.id,
             'ChargeCreated',

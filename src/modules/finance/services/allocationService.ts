@@ -81,9 +81,9 @@ export class AllocationService {
 
       // Calculate new balances
       const balances = calculateBalancesAfterAllocation(
-        allocationAmount,
         receiptBalance,
-        charge.remainingAmount
+        charge.remainingAmount,
+        allocationAmount
       )
 
       // Create allocation record and update charge

@@ -323,7 +323,7 @@ export class AttendanceService {
 
       return {
         success: true,
-        data: [],
+        data: attendances as unknown as AttendanceDTO[],
       }
     } catch (error) {
       const businessError = new BusinessRuleError(
